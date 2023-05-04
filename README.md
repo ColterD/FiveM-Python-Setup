@@ -3,4 +3,7 @@ Automation script for Ubuntu systems that installs LinuxGSM and FiveM.  Intended
 
 Unstable and untested.
 
+Ubuntu Only!
+Run as sudo
+
 curl -sSL https://raw.githubusercontent.com/ColterD/LinuxGSM-FiveM/main/linuxgsm-fivem-install.sh | bash
