@@ -3,12 +3,17 @@
 set -e
 
 function main() {
+  local maria_root_password
+  local fivem_db_username
+  local fivem_db_password
   check_sudo_privileges
   install_unattended_upgrades
   update_os_and_packages
   install_web_server
   install_required_packages
   secure_mariadb_installation
+  create_mariadb_user
+  display_database_and_fivem_user_passwords
   configure_fail2ban
   create_fivem_user_and_set_sudo_privileges
   clone_linuxgsm_repository
@@ -67,6 +72,29 @@ function install_required_packages() {
 
 function secure_mariadb_installation() {
   mysql_secure_installation
+}
+
+function create_mariadb_user() {
+  read -p "Enter username for FiveM MariaDB user: " fivem_db_username
+  fivem_db_password=$(openssl rand -hex 12)
+  echo "The password for the FiveM MariaDB user '$fivem_db_username' is: $fivem_db_password"
+  echo "Please write it down and keep it safe."
+  echo "Creating the user..."
+  mysql -uroot -p <<EOF
+CREATE USER '$fivem_db_username'@'localhost' IDENTIFIED BY '$fivem_db_password';
+GRANT ALL PRIVILEGES ON *.* TO '$fivem_db_username'@'localhost';
+EOF
+  maria_root_password=$(openssl rand -hex 12)
+}
+
+function display_database_and_fivem_user_passwords() {
+  echo ""
+  echo "Please write down the following information for future reference:"
+  echo ""
+  echo "MariaDB root password: $maria_root_password"
+  echo "FiveM MariaDB username: $fivem_db_username"
+  echo "FiveM MariaDB user password: $fivem_db_password"
+  echo ""
 }
 
 function configure_fail2ban() {
