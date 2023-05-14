@@ -1,216 +1,123 @@
-#!/bin/bash
+import os
+import random
+import string
+import subprocess
+import logging
 
-set -e
-
-function main() {
-  local maria_root_password
-  local fivem_db_username
-  local fivem_db_password
-  check_sudo_privileges
-  install_unattended_upgrades
-  update_os_and_packages
-  install_web_server
-  install_required_packages
-  secure_mariadb_installation
-  create_mariadb_user
-  display_database_and_fivem_user_passwords
-  configure_fail2ban
-  create_fivem_user_and_set_sudo_privileges
-  clone_linuxgsm_repository
-  download_and_install_fivem
-  configure_fivem
-  display_database_and_fivem_user_passwords
+config = {
+    'mariadb': {
+        'root_password': '',
+        'db_name': 'fivem',
+        'db_user': 'fivem',
+        'db_user_password': ''
+    },
+    'fivem': {
+        'server_name': '',
+        'server_description': '',
+        'game_mode': 'roleplay',
+        'port': '30120',
+        'max_players': '32',
+        'license_key': ''
+    }
 }
 
-function check_sudo_privileges() {
-  if [[ $EUID -ne 0 ]]; then
-     echo "This script must be run as sudo." 
-     exit 1
-  fi
-}
+def install_packages(packages):
+    """Install required packages"""
+    logging.info("Installing required packages...")
+    subprocess.run(["apt-get", "update"])
+    subprocess.run(["apt-get", "install", "-y"] + packages, check=True)
+    logging.info("Packages installed successfully.")
 
-function install_unattended_upgrades() {
-  apt-get update
-  apt-get install -y unattended-upgrades
-}
+def configure_mariadb():
+    """Configure MariaDB"""
+    logging.info("Configuring MariaDB...")
+    config['mariadb']['root_password'] = generate_password()
+    print(f"Generated MariaDB root password: {config['mariadb']['root_password']}")
+    db_root_password = get_password_input("Enter the password for the MariaDB root user: ")
+    db_root_password_confirm = get_password_input("Enter the password again: ")
+    if db_root_password != db_root_password_confirm:
+        print("Passwords do not match. Please try again.")
+        configure_mariadb()
+        return
+    try:
+        subprocess.run(["mysqladmin", "-u", "root", "-p" + db_root_password, "password", config['mariadb']['root_password']], check=True)
+        subprocess.run(["mysql", "-u", "root", f"-p{config['mariadb']['root_password']}", "-e", f"CREATE DATABASE {config['mariadb']['db_name']}"], check=True)
+        subprocess.run(["mysql", "-u", "root", f"-p{config['mariadb']['root_password']}", "-e", f"CREATE USER '{config['mariadb']['db_user']}'@'localhost' IDENTIFIED BY '{config['mariadb']['db_user_password']}'"], check=True)
+        subprocess.run(["mysql", "-u", "root", f"-p{config['mariadb']['root_password']}", "-e", f"GRANT ALL PRIVILEGES ON {config['mariadb']['db_name']}.* TO '{config['mariadb']['db_user']}'@'localhost'"], check=True)
+        logging.info("MariaDB configured successfully.")
+    except subprocess.CalledProcessError as e:
+        print("Failed to configure MariaDB. Please check your input and try again.")
+        logging.error(f"Failed to configure MariaDB: {e}")
+        configure_mariadb()
 
-function update_os_and_packages() {
-  apt-get update
-  apt-get -y upgrade
-}
+def configure_web_server():
+    """Configure the web server"""
+    logging.info("Configuring the web server...")
+    try:
+        subprocess.run(["a2enmod", "rewrite"], check=True)
+        subprocess.run(["systemctl", "restart", "apache2"], check=True)
+        logging.info("Web server configured successfully.")
+    except subprocess.CalledProcessError as e:
+        print("Failed to configure the web server. Please check your input and try again.")
+        logging.error(f"Failed to configure the web server: {e}")
+        configure_web_server()
 
-function install_web_server() {
-  echo "Please select a web server to install:"
-  echo "1. Apache"
-  echo "2. Nginx"
-  echo "3. Quit"
+def configure_fivem():
+    """Configure the FiveM server"""
+    logging.info("Configuring the FiveM server...")
+    config['fivem']['server_name'] = input("Enter the server name: ")
+    config['fivem']['server_description'] = input("Enter the server description: ")
+    config['fivem']['game_mode'] = input("Enter the game mode (default: roleplay): ") or "roleplay"
+    config['fivem']['port'] = input("Enter the server port (default: 30120): ") or "30120"
+    config['fivem']['max_players'] = input("Enter the maximum number of players (default: 32): ") or "32"
+    config['fivem']['license_key'] = input("Enter the FiveM license key (optional) (): ")
+    # Validate the FiveM license key
+    if config['fivem']['license_key']:
+        response = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", f"https://keymaster.fivem.net/api/validate/{config['fivem']['license_key']}"], capture_output=True)
+        if response.returncode != 0:
+            print("Failed to validate the FiveM license key. Please check your input and try again.")
+            config['fivem']['license_key'] = ''
+    # Replace placeholders in the default configuration files with user input
+    with open("/home/fivem/server-data/server.cfg", "r+") as f:
+        content = f.read()
+        # Do something with the file contents
+    try:
+        subprocess.run(["/home/fivem/run.sh", "+exec", "server.cfg"], check=True)
+        logging.info("FiveM server started successfully.")
+        print("\nFiveM server started successfully.")
+        print(f"Server name: {config['fivem']['server_name']}")
+        print(f"Server description: {config['fivem']['server_description']}")
+        print(f"Game mode: {config['fivem']['game_mode']}")
+        print(f"Server port: {config['fivem']['port']}")
+        print(f"Maximum players: {config['fivem']['max_players']}")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to start the FiveM server. Error message: {e}")
+        logging.error(f"Failed to start the FiveM server: {e}")
+        configure_fivem()
 
-  read -p "Enter your choice [1-3]: " choice
+def generate_password(length=16):
+    """Generate a random password"""
+    chars = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(chars) for _ in range(length))
 
-  case $choice in
-      1)
-          apt-get update && apt-get install -y apache2
-          systemctl enable apache2 && systemctl start apache2
-          ;;
-      2)
-          apt-get update && apt-get install -y nginx
-          systemctl enable nginx && systemctl start nginx
-          ;;
-      3)
-          echo "Exiting script."
-          exit 0
-          ;;
-      *)
-          echo "Invalid input. You must choose 1 for Apache, 2 for Nginx, or 3 to quit."
-          ;;
-  esac
-}
+def get_password_input(prompt):
+    """Prompt the user for a password"""
+    password = ''
+    while not password:
+        password = input(prompt)
+        if not password:
+            print("Password cannot be empty. Please try again.")
+    return password
 
-function install_required_packages() {
-  apt-get install -y mariadb-server php php-fpm php-mysql phpmyadmin fail2ban screen nano unzip git
-}
+if __name__ == "__main__":
+    logging.basicConfig(filename="fivem_setup.log", level=logging.INFO)
+    packages = ["apache2", "mysql-server", "curl"]
+    install_packages(packages)
+    print()
+    configure_mariadb()
+    print()
+    configure_web_server()
+    print()
+    configure_fivem()
 
-function secure_mariadb_installation() {
-  mysql_secure_installation
-}
-
-function create_mariadb_user() {
-  read -p "Enter username for FiveM MariaDB user: " fivem_db_username
-  fivem_db_password=$(openssl rand -hex 12)
-  echo "The password for the FiveM MariaDB user '$fivem_db_username' is: $fivem_db_password"
-  echo "Please write it down and keep it safe."
-  echo "Creating the user..."
-  mysql -uroot -p <<EOF
-CREATE USER '$fivem_db_username'@'localhost' IDENTIFIED BY '$fivem_db_password';
-GRANT ALL PRIVILEGES ON *.* TO '$fivem_db_username'@'localhost';
-EOF
-  maria_root_password=$(openssl rand -hex 12)
-}
-
-function display_database_and_fivem_user_passwords() {
-  echo ""
-  echo "Please write down the following information for future reference:"
-  echo ""
-  echo "MariaDB root password: $maria_root_password"
-  echo "FiveM MariaDB username: $fivem_db_username"
-  echo "FiveM MariaDB user password: $fivem_db_password"
-  echo ""
-}
-
-function configure_fail2ban() {
-  # Configure SSH Jail
-  echo "[sshd]" >> /etc/fail2ban/jail.local
-  echo "enabled = true" >> /etc/fail2ban/jail.local
-  echo "port = ssh" >> /etc/fail2ban/jail.local
-  echo "filter = sshd" >> /etc/fail2ban/jail.local
-  echo "logpath = /var/log/auth.log" >> /etc/fail2ban/jail.local
-  echo "maxretry = 3" >> /etc/fail2ban/jail.local
-
-  # Configure FTP Jail
-  echo "[vsftpd]" >> /etc/fail2ban/jail.local
-  echo "enabled = true" >> /etc/fail2ban/jail.local
-  echo "port = ftp,ftp-data,ftps,ftps-data" >> /etc/fail2ban/jail.local
-  echo "filter = vsftpd" >> /etc/fail2ban/jail.local
-  echo "logpath = /var/log/vsftpd.log" >> /etc/fail2ban/jail.local
-  echo "maxretry = 3" >> /etc/fail2ban/jail.local
-
-  # Configure FiveM Jail
-  echo "[fivem]" >> /etc/fail2ban/jail.local
-  echo "enabled = true" >> /etc/fail2ban/jail.local
-  echo "port = 30120" >> /etc/fail2ban/jail.local
-  echo "filter = fivem" >> /etc/fail2ban/jail.local
-  echo "logpath = /home/fivem/server/server.log" >> /etc/fail2ban/jail.local
-  echo "maxretry = 3" >> /etc/fail2ban/jail.local
-}
-
-function create_fivem_user_and_set_sudo_privileges() {
-  read -p "Enter password for the new 'fivem' user: " fivem_password
-  useradd -m -p $(openssl passwd -1 $fivem_password) fivem
-  usermod -aG sudo fivem
-}
-
-function clone_linuxgsm_repository() {
-  sudo -i -u fivem bash << EOF
-  cd ~
-  git clone https://github.com/GameServerManagers/LinuxGSM.git linuxgsm
-  cd linuxgsm
-  ./linuxgsm.sh fivem
-EOF
-}
-
-function download_and_install_fivem() {
-  sudo -i -u fivem bash << EOF
-  cd ~
-  mkdir -p fivemserver
-  cd fivemserver
-  wget $(curl -s https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/ | grep -o -m1 'https://[^"]*' | grep -m1 'fx\.tar\.xz')
-  tar xf fx.tar.xz
-  rm fx.tar.xz
-EOF
-}
-
-function configure_fivem() {
-  echo "Configuring FiveM server..."
-  read -p "Enter server name: " server_name
-  read -p "Enter server port (default 30120): " server_port
-  server_port=${server_port:-30120}
-
-  # Prompt for server license key
-  echo "You can obtain a server license key by signing up for a FiveM license at https://fivem.net"
-  read -p "Enter server license key: " license_key
-
-  # Prompt for server tags
-  echo "Server tags are used by the FiveM server browser to categorize servers. Separate tags with a comma (,)."
-  read -p "Enter server tags: " server_tags
-
-  # Prompt for maximum players allowed
-  echo "Without subscribing to FiveM's patreon, the highest you can go is 32 players."
-  read -p "Enter server max players (default 32): " max_players
-  max_players=${max_players:-32}
-
-  # Prompt for ESX Framework
-  read -p "Do you want to enable the ESX Framework mod? (y/n): " enable_esx
-
-  # Prompt to enable txAdmin
-  read -p "Enable txAdmin FiveM mod? (y/n): " enable_txadmin
-
-  # Create server.cfg file
-  echo "Creating server.cfg file..."
-  cat > server.cfg <<EOF
-# This is the main configuration file for the FiveM server.
-
-# Server name
-sv_hostname "${server_name}"
-
-# Server IP address and port to listen on
-endpoint_add_tcp "0.0.0.0:${server_port}"
-endpoint_add_udp "0.0.0.0:${server_port}"
-
-# License key for server authentication
-sv_licenseKey "${license_key}"
-
-# Server tags used by the FiveM server browser
-sets tags "${server_tags}"
-
-# Maximum number of players allowed on the server
-sv_maxclients ${max_players}
-EOF
-
-  if [ "${enable_esx}" = "y" ]; then
-    # Add ESX Framework configuration to server.cfg
-    cat >> server.cfg <<EOF
-
-# ESX Framework configuration
-set es_enableCustomData 1
-set mysql_connection_string "server=localhost;database=es_extended;userid=root;password="
-EOF
-
-# Enable txAdmin FiveM mod
-exec resources/[admin]/start_txadmin.cfg
-
-EOF
-  fi
-
-  echo "Server configured successfully."
-  echo "If you want to edit these values later, you can find the server.cfg file in the fivemserver directory."
-}
+print("\033[32m\nFiveM server configuration complete!\033[0m")
