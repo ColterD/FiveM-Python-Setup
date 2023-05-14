@@ -27,7 +27,3 @@ The script will prompt you for the following information during the configuratio
 - FiveM server port
 - FiveM server maximum players
 - FiveM license key
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
