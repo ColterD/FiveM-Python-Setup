@@ -26,7 +26,7 @@ The script will prompt you for the following information during the configuratio
 - FiveM server game mode
 - FiveM server port
 - FiveM server maximum players
-- FiveM license key (optional)
+- FiveM license key
 
 ## License
 
