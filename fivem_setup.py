@@ -70,7 +70,7 @@ def configure_fivem():
     config['fivem']['game_mode'] = input("Enter the game mode (default: roleplay): ") or "roleplay"
     config['fivem']['port'] = input("Enter the server port (default: 30120): ") or "30120"
     config['fivem']['max_players'] = input("Enter the maximum number of players (default: 32): ") or "32"
-    config['fivem']['license_key'] = input("Enter the FiveM license key (optional) (): ")
+    config['fivem']['license_key'] = input("Enter the FiveM license key: ")
     # Validate the FiveM license key
     if config['fivem']['license_key']:
         response = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", f"https://keymaster.fivem.net/api/validate/{config['fivem']['license_key']}"], capture_output=True)
