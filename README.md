@@ -11,7 +11,7 @@ This script automates the process of setting up a FiveM server on a Linux machin
 
 1. Clone this repository to your local machine.
 2. Open a terminal and navigate to the directory where you cloned the repository.
-3. Run the script using the following command:
+3. Run the script using the following command: `python fivem_setup.py` or `python3 fivem_setup.py`
 4. Follow the prompts to configure the MariaDB server, web server, and FiveM server.
 5. Once the configuration is complete, the FiveM server will be started automatically.
 
