@@ -1,9 +1,20 @@
-# LinuxGSM-FiveM
-Automation script for Ubuntu systems that installs LinuxGSM and FiveM.  Intended to be a run and done type of script.
 
-Unstable and untested.
+4. Follow the prompts to configure the MariaDB server, web server, and FiveM server.
+5. Once the configuration is complete, the FiveM server will be started automatically.
 
-Ubuntu Only!
-Run as sudo
+## Configuration
 
-curl -sSL https://raw.githubusercontent.com/ColterD/LinuxGSM-FiveM/main/linuxgsm-fivem-install.sh | bash
+The script will prompt you for the following information during the configuration process:
+
+- MariaDB root password
+- Web server domain name
+- FiveM server name
+- FiveM server description
+- FiveM server game mode
+- FiveM server port
+- FiveM server maximum players
+- FiveM license key (optional)
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
