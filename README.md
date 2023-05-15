@@ -14,8 +14,6 @@ This script will help you set up a FiveM server on Ubuntu 20.04. It will install
 2. Open a terminal window and navigate to the directory where you cloned the repository.
 3. Run the following commands to install the required packages:
 
-
-
 ```
 sudo apt-get install python3-pip
 ```
