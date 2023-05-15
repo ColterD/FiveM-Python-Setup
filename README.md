@@ -1,29 +1,40 @@
-# FiveM Server Setup Script
+# FiveM Server Setup
 
-This script automates the process of setting up a FiveM server on a Linux machine. It installs the necessary packages, configures the MariaDB database server, sets up a web server, and configures the FiveM server.
+This repository contains a Python script that can be used to setup and configure a FiveM server.
 
 ## Requirements
 
-- A Linux machine (tested on Ubuntu 20.04)
-- Python 3.x
+* A Linux machine (tested on Ubuntu 20.04)
+* Python 3.9 or higher
+
+## Installation
+
+1. Clone the repository to your computer.
+2. Open the `config.py` file in a text editor.
+3. Edit the configuration variables to match your settings.
+4. Run the `config.py` file.
 
 ## Usage
 
-1. Clone this repository to your local machine.
-2. Open a terminal and navigate to the directory where you cloned the repository.
-3. Run the script using the following command: `python fivem_setup.py` or `python3 fivem_setup.py`
-4. Follow the prompts to configure the MariaDB server, web server, and FiveM server.
-5. Once the configuration is complete, the FiveM server will be started automatically.
+Once the configuration is complete, you will be able to start a FiveM server.
 
-## Configuration
+`python3 /path/to/config.py`
 
-The script will prompt you for the following information during the configuration process:
+## Configuration Variables
 
-- MariaDB root password
-- Web server domain name
-- FiveM server name
-- FiveM server description
-- FiveM server game mode
-- FiveM server port
-- FiveM server maximum players
-- FiveM license key
+The following configuration variables can be edited in the `config.py` file:
+
+* `mariadb_root_password`: The password for the MariaDB root user.
+* `db_name`: The name of the FiveM database.
+* `db_user`: The name of the FiveM database user.
+* `db_user_password`: The password for the FiveM database user.
+* `server_name`: The name of the FiveM server.
+* `server_description`: The description of the FiveM server.
+* `game_mode`: The game mode of the FiveM server.
+* `port`: The port of the FiveM server.
+* `max_players`: The maximum number of players on the FiveM server.
+* `license_key`: The license key for the FiveM server.
+
+## Troubleshooting
+
+If you have any problems with the configuration, please open an issue on the GitHub repository.
