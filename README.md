@@ -66,4 +66,4 @@ The FiveM server can be configured by editing the server.cfg file. The server.cf
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Creative Commons Attribution-Share Alike 4.0 International (CC BY-SA 4.0) License.
