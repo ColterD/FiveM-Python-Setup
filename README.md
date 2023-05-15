@@ -1,40 +1,57 @@
-# FiveM Server Setup
+# FiveM Server Setup Script
 
-This repository contains a Python script that can be used to setup and configure a FiveM server.
+This script will help you set up a FiveM server on Ubuntu 20.04. It will install the required packages, configure MariaDB, and configure the web server.
 
-## Requirements
+## Prerequisites
 
-* A Linux machine (tested on Ubuntu 20.04)
-* Python 3.9 or higher
+* A computer with at least 4GB of RAM
+* A 64-bit operating system
+* A 5GB hard drive space
 
-## Installation
+## Instructions
 
-1. Clone the repository to your computer.
-2. Open the `config.py` file in a text editor.
-3. Edit the configuration variables to match your settings.
-4. Run the `config.py` file.
+1. Clone this repository to your computer.
+2. Open a terminal window and navigate to the directory where you cloned the repository.
+3. Run the following commands to install the required packages:
 
-## Usage
 
-Once the configuration is complete, you will be able to start a FiveM server.
 
-`python3 /path/to/config.py`
+```
+sudo apt-get install python3-pip
+sudo pip3 install mariadb-server nginx
+```
 
-## Configuration Variables
+4. Run the following command:
 
-The following configuration variables can be edited in the `config.py` file:
+```
+python3 fivem_setup.py
+```
 
-* `mariadb_root_password`: The password for the MariaDB root user.
-* `db_name`: The name of the FiveM database.
-* `db_user`: The name of the FiveM database user.
-* `db_user_password`: The password for the FiveM database user.
-* `server_name`: The name of the FiveM server.
-* `server_description`: The description of the FiveM server.
-* `game_mode`: The game mode of the FiveM server.
-* `port`: The port of the FiveM server.
-* `max_players`: The maximum number of players on the FiveM server.
-* `license_key`: The license key for the FiveM server.
+5. To start the FiveM server, run the following command:
 
-## Troubleshooting
+```
+python3 start_fivem_server.py
+```
 
-If you have any problems with the configuration, please open an issue on the GitHub repository.
+6. To stop the FiveM server, run the following command:
+
+```
+python3 stop_fivem_server.py
+```
+
+7. To restart the FiveM server, run the following command:
+
+```
+python3 restart_fivem_server.py
+```
+
+8. To update the FiveM server, run the following command:
+
+```
+python3 update_fivem_server.py
+```
+
+## License
+
+This script is licensed under the MIT License.
+```
