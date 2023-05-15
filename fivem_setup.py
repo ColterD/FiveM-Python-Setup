@@ -16,12 +16,9 @@ config = {
         'db_user_password': ''
     },
     'fivem': {
-        'server_name': 'FiveM',
-        'server_description': 'A FiveM roleplaying server.',
-        'game_mode': 'roleplay',
-        'port': '30120',
-        'max_players': '32',
-        'license_key': ''
+        'sv_projectName': 'FiveM',
+        'sv_projectDesc': 'A FiveM roleplaying server.',
+        'sv_maxclients': '32',
     }
 }
 
@@ -193,28 +190,27 @@ if __name__ == "__main__":
     configure_web_server()
 
     # Prompt the user to edit the server.cfg file
-    print("Would you like to edit the server.cfg file? (Y/N)")
+    print("Would you like to edit the server.cfg file now? (Y/N)")
     choice = input()
 
     if choice == "Y":
         # Get the user's input for the config variables
-        server_name = input("Enter the server name (Leave blank for default): ") or "FiveM"
-        server_description = input("Enter the server description (Leave blank for default): ") or "A FiveM roleplaying server."
-        game_mode = input("Enter the game mode (Leave blank for default): ") or "roleplay"
-        port = input("Enter the port (Leave blank for default): ") or "30120"
-        max_players = input("Enter the maximum number of players (Leave blank for default): ") or "32"
-        license_key = input("Enter the license key (Leave blank for default): ") or ""
+        sv_projectName = input("Enter the server name (Leave blank for default): ") or "FiveM"
+        sv_projectDesc = input("Enter the server description (Leave blank for default): ") or "A FiveM roleplaying server."
+        sv_maxclients = input("Enter the maximum number of players (Leave blank for default): ") or "32"
+        
+        # Prompt the user for the license key and tell them where to get it
+        sv_licenseKey = input("Enter the license key: ")
+        print("To get a FiveM license key, go to https://keymaster.fivem.net/")
 
         # Open the server.cfg file in write mode
         with open("server.cfg", "w") as f:
 
             # Write the user's input to the server.cfg file
-            f.write("server_name = " + server_name + "\n")
-            f.write("server_description = " + server_description + "\n")
-            f.write("game_mode = " + game_mode + "\n")
-            f.write("port = " + port + "\n")
-            f.write("max_players = " + max_players + "\n")
-            f.write("license_key = " + license_key + "\n")
+            f.write("sv_projectName = " + server_name + "\n")
+            f.write("sv_projectDesc = " + sv_projectDesc + "\n")
+            f.write("sv_maxclients = " + sv_maxclients + "\n")
+            f.write("sv_licenseKey = " + sv_licenseKey + "\n")
 
         # Close the server.cfg file
         f.close()
