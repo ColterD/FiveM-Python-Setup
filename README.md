@@ -1,54 +1,69 @@
 # FiveM Server Setup Script
 
-This script will help you set up a FiveM server on Ubuntu 20.04. It will install the required packages, configure MariaDB, and configure the web server.
+This script will install the required packages, configure MariaDB, configure the web server, and prompt the user to edit the server.cfg file. Finally, the script creates a fivemserver.sh file that can be used to start, stop, restart, and update the FiveM server.
 
 ## Prerequisites
 
-* A computer with at least 4GB of RAM
-* A 64-bit operating system
-* A 5GB hard drive space
+* Ubuntu 20.04
+* At least 4GB of RAM
+* At least 5GB hard drive space
 
-## Instructions
+## Installation
 
-1. Clone this repository to your computer.
-2. Open a terminal window and navigate to the directory where you cloned the repository.
-3. Run the following commands to install the required packages:
+1. Clone the repository:
 
 ```
-sudo apt-get install python3-pip
+git clone https://github.com/ColterD/FiveM-Python-Setup.git
 ```
 
-4. Run the following command:
+2. Change to the directory:
+
+```
+cd FiveM-Python-Setup
+```
+
+3. Install the required packages:
+
+```
+pip3 install -r requirements.txt
+```
+
+4. Run the command:
 
 ```
 python3 fivem_setup.py
 ```
 
-5. To start the FiveM server, run the following command:
+## Server Management
+
+1. Run the following command to start the FiveM server:
 
 ```
-python3 start_fivem_server.py
+./fivemserver.sh start
 ```
 
-6. To stop the FiveM server, run the following command:
+2. Run the following command to stop the FiveM server:
 
 ```
-python3 stop_fivem_server.py
+./fivemserver.sh stop
 ```
 
-7. To restart the FiveM server, run the following command:
+3. Run the following command to restart the FiveM server:
 
 ```
-python3 restart_fivem_server.py
+./fivemserver.sh restart
 ```
 
-8. To update the FiveM server, run the following command:
+4. Run the following command to update the FiveM server:
 
 ```
-python3 update_fivem_server.py
+./fivemserver.sh update
 ```
+
+## Configuration
+
+The FiveM server can be configured by editing the server.cfg file. The server.cfg file is located in the FiveM-Python-Setup directory.
 
 ## License
 
-This script is licensed under the MIT License.
-```
+This project is licensed under the MIT License.
