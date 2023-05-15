@@ -18,7 +18,6 @@ This script will help you set up a FiveM server on Ubuntu 20.04. It will install
 
 ```
 sudo apt-get install python3-pip
-sudo pip3 install mariadb-server nginx
 ```
 
 4. Run the following command:
