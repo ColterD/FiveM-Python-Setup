@@ -2,6 +2,8 @@
 
 This script will install the required packages, configure MariaDB, configure the web server, and prompt the user to edit the server.cfg file. Finally, the script creates a fivemserver.sh file that can be used to start, stop, restart, and update the FiveM server.
 
+If there isn't a Release listed, then this is completely unstable.
+
 ## Prerequisites
 
 * Ubuntu 20.04
