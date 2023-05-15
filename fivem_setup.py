@@ -192,4 +192,102 @@ if __name__ == "__main__":
     # Configure the web server
     configure_web_server()
 
-    print("**FiveM server is now configured!**")
+    # Prompt the user to edit the server.cfg file
+    print("Would you like to edit the server.cfg file? (Y/N)")
+    choice = input()
+
+    if choice == "Y":
+        # Get the user's input for the config variables
+        server_name = input("Enter the server name (Leave blank for default): ") or "FiveM"
+        server_description = input("Enter the server description (Leave blank for default): ") or "A FiveM roleplaying server."
+        game_mode = input("Enter the game mode (Leave blank for default): ") or "roleplay"
+        port = input("Enter the port (Leave blank for default): ") or "30120"
+        max_players = input("Enter the maximum number of players (Leave blank for default): ") or "32"
+        license_key = input("Enter the license key (Leave blank for default): ") or ""
+
+        # Open the server.cfg file in write mode
+        with open("server.cfg", "w") as f:
+
+            # Write the user's input to the server.cfg file
+            f.write("server_name = " + server_name + "\n")
+            f.write("server_description = " + server_description + "\n")
+            f.write("game_mode = " + game_mode + "\n")
+            f.write("port = " + port + "\n")
+            f.write("max_players = " + max_players + "\n")
+            f.write("license_key = " + license_key + "\n")
+
+        # Close the server.cfg file
+        f.close()
+
+    else:
+        # Do nothing
+        pass
+
+    # Create the fivemserver.sh file and directory
+    with open('fivemserver.sh', 'w') as f:
+        f.write("""
+#!/usr/bin/env python3
+
+import os
+import sys
+
+# Define the configuration variables
+config = {
+    'fivem_server_path': os.getcwd(),
+    'fivem_server_command': 'startfivem.sh',
+    'fivem_server_update_command': 'updatefivem.sh',
+}
+
+# Check if the user has the required permissions to start, stop, restart, and update the FiveM server
+if not os.geteuid() == 0:
+    print("**You do not have the required permissions to start, stop, restart, and update the FiveM server.**")
+    sys.exit(1)
+
+# Get the current working directory
+current_directory = os.getcwd()
+
+# Change the current working directory to the FiveM server directory
+os.chdir(config['fivem_server_path'])
+
+# Check if the FiveM server directory exists
+if not os.path.exists(config['fivem_server_path']):
+    print("**The FiveM server directory does not exist.**")
+    sys.exit(1)
+
+# Start the FiveM server
+if sys.argv[1] == 'start':
+    print("**Starting FiveM server...**")
+    subprocess.run([config['fivem_server_command']])
+    print("**FiveM server is now started.**")
+
+# Stop the FiveM server
+if sys.argv[1] == 'stop':
+    print("**Stopping FiveM server...**")
+    subprocess.run([config['fivem_server_command'], '--stop'])
+    print("**FiveM server is now stopped.**")
+
+# Restart the FiveM server
+if sys.argv[1] == 'restart':
+    print("**Restarting FiveM server...**")
+    subprocess.run([config['fivem_server_command'], '--restart'])
+    print("**FiveM server is now restarted.**")
+
+# Update the FiveM server
+if sys.argv[1] == 'update':
+    print("**Updating FiveM server...**")
+    subprocess.run([config['fivem_server_update_command']])
+    print("**FiveM server is now updated.**")
+""")
+
+    # Check if the fivemserver.sh file exists
+    if not os.path.exists('fivemserver.sh'):
+        print("**The fivemserver.sh file does not exist.**")
+        sys.exit(1)
+
+    # Make the fivemserver.sh file executable
+    os.chmod('fivemserver.sh', 0o755)
+
+    # Start the FiveM server
+    print("**Starting FiveM server...**")
+    subprocess.run(['fivemserver.sh'])
+    print("**FiveM server is now configured started.**")
