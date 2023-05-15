@@ -39,7 +39,33 @@ def install_packages():
     # Use a linter to check for errors
     subprocess.run(["pylint", "install_packages.py"])
 
-    subprocess.run(["sudo", "apt-get", "install", "--install", "apache2", "curl", "openssl", "libssl-dev", "libffi-dev", "git", "build-essential", "zip", "unzip", "nodejs", "npm", "python3-pip", "mariadb-server"])
+    # Download the FiveM server
+    print("**Downloading FiveM server...**")
+
+    # Check if the user has the required permissions to download the FiveM server
+    if not os.geteuid() == 0:
+        print("**You do not have the required permissions to download the FiveM server.**")
+        return
+
+    subprocess.run(["wget", "https://fivem.net/fivem-server.zip"])
+
+    # Unzip the FiveM server
+    print("**Unzipping FiveM server...**")
+
+    # Check if the user has the required permissions to unzip the FiveM server
+    if not os.geteuid() == 0:
+        print("**You do not have the required permissions to unzip the FiveM server.**")
+        return
+
+    subprocess.run(["unzip", "fivem-server.zip"])
+
+    # Configure MariaDB
+    configure_mariadb()
+
+    # Configure the web server
+    configure_web_server()
+
+    print("**FiveM server is now configured!**")
 
 
 def configure_mariadb():
@@ -154,27 +180,6 @@ def configure_web_server():
         print("**Apache has been configured and enabled!**")
     else:
         print("**Apache will not be installed.**")
-
-
-if __name__ == "__main__":
-    # Install the required packages
-    install_packages()
-
-    # Configure MariaDB
-    configure_mariadb()
-
-    # Configure the web server
-    configure_web_server()
-
-    print("**FiveM server is now configured!**")
-
-
-def generate_password(length=12):
-    """Generate a random password of the specified length."""
-    # Generate a random string of the specified length.
-    characters = string.ascii_lowercase + string.ascii_uppercase + string.digits
-    password = ''.join(random.choice(characters) for _ in range(length))
-    return password
 
 
 if __name__ == "__main__":
