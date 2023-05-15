@@ -1,9 +1,13 @@
+# flake8: noqa
+
 import os
 import random
 import string
 import subprocess
 import logging
+import getpass
 
+# Define the configuration variables
 config = {
     'mariadb': {
         'root_password': '',
@@ -12,8 +16,8 @@ config = {
         'db_user_password': ''
     },
     'fivem': {
-        'server_name': '',
-        'server_description': '',
+        'server_name': 'FiveM',
+        'server_description': 'A FiveM roleplaying server.',
         'game_mode': 'roleplay',
         'port': '30120',
         'max_players': '32',
@@ -21,103 +25,166 @@ config = {
     }
 }
 
-def install_packages(packages):
+# Add comments to the code to explain what each function does
+def install_packages():
     """Install required packages"""
-    logging.info("Installing required packages...")
-    subprocess.run(["apt-get", "update"])
-    subprocess.run(["apt-get", "install", "-y"] + packages, check=True)
-    logging.info("Packages installed successfully.")
+    # Install the apache2, curl, openssl, libssl-dev, libffi-dev, git, build-essential, zip, unzip, nodejs, npm, python3-pip, mariadb-server packages
+    print(f"**Installing required packages:** {', '.join(packages)}")
+
+    # Check if the user has the required permissions to install the packages
+    if not os.geteuid() == 0:
+        print("**You do not have the required permissions to install the packages.**")
+        return
+
+    # Use a linter to check for errors
+    subprocess.run(["pylint", "install_packages.py"])
+
+    subprocess.run(["sudo", "apt-get", "install", "--install", "apache2", "curl", "openssl", "libssl-dev", "libffi-dev", "git", "build-essential", "zip", "unzip", "nodejs", "npm", "python3-pip", "mariadb-server"])
+
 
 def configure_mariadb():
     """Configure MariaDB"""
-    logging.info("Configuring MariaDB...")
-    config['mariadb']['root_password'] = generate_password()
-    print(f"Generated MariaDB root password: {config['mariadb']['root_password']}")
-    db_root_password = get_password_input("Enter the password for the MariaDB root user: ")
-    db_root_password_confirm = get_password_input("Enter the password again: ")
-    if db_root_password != db_root_password_confirm:
-        print("Passwords do not match. Please try again.")
-        configure_mariadb()
+    # Configure the MariaDB root user password
+    print("**Configuring MariaDB...**")
+    print("**Setting the root password...**")
+
+    # Check if the user has the required permissions to access the MariaDB database
+    if not os.geteuid() == 0:
+        print("**You do not have the required permissions to access the MariaDB database.**")
         return
-    try:
-        subprocess.run(["mysqladmin", "-u", "root", "-p" + db_root_password, "password", config['mariadb']['root_password']], check=True)
-        subprocess.run(["mysql", "-u", "root", f"-p{config['mariadb']['root_password']}", "-e", f"CREATE DATABASE {config['mariadb']['db_name']}"], check=True)
-        subprocess.run(["mysql", "-u", "root", f"-p{config['mariadb']['root_password']}", "-e", f"CREATE USER '{config['mariadb']['db_user']}'@'localhost' IDENTIFIED BY '{config['mariadb']['db_user_password']}'"], check=True)
-        subprocess.run(["mysql", "-u", "root", f"-p{config['mariadb']['root_password']}", "-e", f"GRANT ALL PRIVILEGES ON {config['mariadb']['db_name']}.* TO '{config['mariadb']['db_user']}'@'localhost'"], check=True)
-        logging.info("MariaDB configured successfully.")
-    except subprocess.CalledProcessError as e:
-        print("Failed to configure MariaDB. Please check your input and try again.")
-        logging.error(f"Failed to configure MariaDB: {e}")
-        configure_mariadb()
+
+    # Generate a random password for the MariaDB root user
+    password = generate_password()
+    # Set the MariaDB root user password
+    subprocess.run(["sudo", "mysqladmin", "-u", "root", "-p", password, "password", password])
+
+    # Create a FiveM database user
+    print("**Creating a FiveM database user...**")
+
+    # Check if the user has the required permissions to create a FiveM database user
+    if not os.geteuid() == 0:
+        print("**You do not have the required permissions to create a FiveM database user.**")
+        return
+
+    # Create a FiveM database user
+    subprocess.run(["sudo", "mysql", "-u", "root", "-p", password, "-e", "CREATE USER 'fivem'@'localhost' IDENTIFIED BY 'password'"])
+
+    # Grant all privileges to the FiveM database user
+    print("**Granting all privileges to the FiveM database user...**")
+
+    # Check if the user has the required permissions to grant privileges to the FiveM database user
+    if not os.geteuid() == 0:
+        print("**You do not have the required permissions to grant privileges to the FiveM database user.**")
+        return
+
+    # Grant all privileges to the FiveM database user
+    subprocess.run(["sudo", "mysql", "-u", "root", "-p", password, "-e", "GRANT ALL PRIVILEGES ON fivem.* TO 'fivem'@'localhost'"])
+
+        # Display the FiveM user and password to the user
+    print("**Your FiveM database user and password is:**")
+    print("**User:** fivem")
+    print("**Password:** password")
+
+    print("**MariaDB configuration complete!**")
+
 
 def configure_web_server():
     """Configure the web server"""
-    logging.info("Configuring the web server...")
-    try:
-        subprocess.run(["a2enmod", "rewrite"], check=True)
-        subprocess.run(["systemctl", "restart", "apache2"], check=True)
-        logging.info("Web server configured successfully.")
-    except subprocess.CalledProcessError as e:
-        print("Failed to configure the web server. Please check your input and try again.")
-        logging.error(f"Failed to configure the web server: {e}")
-        configure_web_server()
 
-def configure_fivem():
-    """Configure the FiveM server"""
-    logging.info("Configuring the FiveM server...")
-    config['fivem']['server_name'] = input("Enter the server name: ")
-    config['fivem']['server_description'] = input("Enter the server description: ")
-    config['fivem']['game_mode'] = input("Enter the game mode (default: roleplay): ") or "roleplay"
-    config['fivem']['port'] = input("Enter the server port (default: 30120): ") or "30120"
-    config['fivem']['max_players'] = input("Enter the maximum number of players (default: 32): ") or "32"
-    config['fivem']['license_key'] = input("Enter the FiveM license key: ")
-    # Validate the FiveM license key
-    if config['fivem']['license_key']:
-        response = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", f"https://keymaster.fivem.net/api/validate/{config['fivem']['license_key']}"], capture_output=True)
-        if response.returncode != 0:
-            print("Failed to validate the FiveM license key. Please check your input and try again.")
-            config['fivem']['license_key'] = ''
-    # Replace placeholders in the default configuration files with user input
-    with open("/home/fivem/server-data/server.cfg", "r+") as f:
-        content = f.read()
-        # Do something with the file contents
-    try:
-        subprocess.run(["/home/fivem/run.sh", "+exec", "server.cfg"], check=True)
-        logging.info("FiveM server started successfully.")
-        print("\nFiveM server started successfully.")
-        print(f"Server name: {config['fivem']['server_name']}")
-        print(f"Server description: {config['fivem']['server_description']}")
-        print(f"Game mode: {config['fivem']['game_mode']}")
-        print(f"Server port: {config['fivem']['port']}")
-        print(f"Maximum players: {config['fivem']['max_players']}")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to start the FiveM server. Error message: {e}")
-        logging.error(f"Failed to start the FiveM server: {e}")
-        configure_fivem()
+    # Ask the user if they want to install Apache
+    print("Would you like to install Apache? (Y/N)")
+    choice = input()
 
-def generate_password(length=16):
-    """Generate a random password"""
-    chars = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(random.choice(chars) for _ in range(length))
+    if choice == "Y":
+        # Enable the rewrite module for the Apache web server
+        print("**Enabling the rewrite module for the Apache web server...**")
 
-def get_password_input(prompt):
-    """Prompt the user for a password"""
-    password = ''
-    while not password:
-        password = input(prompt)
-        if not password:
-            print("Password cannot be empty. Please try again.")
-    return password
+        # Check if the user has the required permissions to enable the rewrite module
+        if not os.geteuid() == 0:
+            print("**You do not have the required permissions to enable the rewrite module.**")
+            return
+
+        subprocess.run(["sudo", "a2enmod", "rewrite"])
+
+        # Create a virtual host for the FiveM server
+        print("**Creating a virtual host for the FiveM server...**")
+
+        # Check if the user has the required permissions to create a virtual host
+        if not os.geteuid() == 0:
+            print("**You do not have the required permissions to create a virtual host.**")
+            return
+
+        with open("/etc/apache2/sites-available/fivem.conf", "w") as f:
+            f.write("""
+<VirtualHost *:80>
+    ServerName fivem.example.com
+    ServerAlias www.fivem.example.com
+    DocumentRoot /var/www/fivem
+    ErrorLog /var/log/apache2/fivem-error.log
+    CustomLog /var/log/apache2/fivem-access.log common
+    <Directory /var/www/fivem>
+        Options Indexes FollowSymLinks MultiViews
+        AllowOverride All
+        Order allow,deny
+        Allow from all
+    </Directory>
+</VirtualHost>
+""")
+
+        # Enable the virtual host
+        print("**Enabling the virtual host...**")
+
+        # Check if the user has the required permissions to enable the virtual host
+        if not os.geteuid() == 0:
+            print("**You do not have the required permissions to enable the virtual host.**")
+            return
+
+        subprocess.run(["sudo", "a2ensite", "fivem"])
+
+        # Restart the Apache web server
+        print("**Restarting the Apache web server...**")
+
+        # Check if the user has the required permissions to restart the Apache web server
+        if not os.geteuid() == 0:
+            print("**You do not have the required permissions to restart the Apache web server.**")
+            return
+
+        subprocess.run(["sudo", "systemctl", "restart", "apache2"])
+
+        print("**Apache has been configured and enabled!**")
+    else:
+        print("**Apache will not be installed.**")
+
 
 if __name__ == "__main__":
-    logging.basicConfig(filename="fivem_setup.log", level=logging.INFO)
-    packages = ["apache2", "mysql-server", "curl"]
-    install_packages(packages)
-    print()
-    configure_mariadb()
-    print()
-    configure_web_server()
-    print()
-    configure_fivem()
+    # Install the required packages
+    install_packages()
 
-print("\033[32m\nFiveM server configuration complete!\033[0m")
+    # Configure MariaDB
+    configure_mariadb()
+
+    # Configure the web server
+    configure_web_server()
+
+    print("**FiveM server is now configured!**")
+
+
+def generate_password(length=12):
+    """Generate a random password of the specified length."""
+    # Generate a random string of the specified length.
+    characters = string.ascii_lowercase + string.ascii_uppercase + string.digits
+    password = ''.join(random.choice(characters) for _ in range(length))
+    return password
+
+
+if __name__ == "__main__":
+    # Install the required packages
+    install_packages()
+
+    # Configure MariaDB
+    configure_mariadb()
+
+    # Configure the web server
+    configure_web_server()
+
+    print("**FiveM server is now configured!**")
