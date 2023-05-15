@@ -226,6 +226,7 @@ if __name__ == "__main__":
 
 import os
 import sys
+import requests
 
 # Define the configuration variables
 config = {
@@ -268,11 +269,16 @@ if sys.argv[1] == 'restart':
     subprocess.run([config['fivem_server_command'], '--restart'])
     print("**FiveM server is now restarted.**")
 
-# Update the FiveM server
-if sys.argv[1] == 'update':
+# Get the latest FiveM version
+latest_version = requests.get("https://fivem.net/api/version").json()["version"]
+
+# Check if the current version is the latest version
+if latest_version > config['fivem_server_version']:
     print("**Updating FiveM server...**")
     subprocess.run([config['fivem_server_update_command']])
     print("**FiveM server is now updated.**")
+else:
+    print("**There is no newer version of FiveM available.**")
 """)
 
     # Check if the fivemserver.sh file exists
